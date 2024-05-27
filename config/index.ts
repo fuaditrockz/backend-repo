@@ -2,6 +2,7 @@ require("dotenv").config();
 
 import { initializeApp } from "firebase/app";
 import { getAnalytics } from "firebase/analytics";
+import { getFirestore, collection, getDocs } from "firebase/firestore/lite";
 
 const firebaseConfig = {
   apiKey: process.env.APIKEY,
