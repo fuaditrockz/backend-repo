@@ -1,16 +1,10 @@
-import express, { Request, Response, NextFunction } from "express";
+import { collection, getDocs } from "firebase/firestore/lite";
 
-const router = express.Router();
+const getUsers = async (db: any) => {
+  const usersCol = collection(db, "users");
+  const userSnapshot = await getDocs(usersCol);
+  const userList = userSnapshot.docs.map((doc) => doc.data());
+  return userList;
+};
 
-router.post("/users", (req: Request, res: Response, next: NextFunction) => {
-  const user = {
-    username: req.body.username,
-    password: req.body.password,
-  };
-});
-
-router.get("/users", (req: Request, res: Response, next: NextFunction) => {
-  res.send("/users is existed. ");
-});
-
-export default router;
+export { getUsers };
