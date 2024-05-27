@@ -1,9 +1,17 @@
 import express, { Request, Response } from "express";
 import { getUsers } from "./controller/users";
 import { db } from "./config";
+import router from "./routes/users";
+import bodyParser from "body-parser";
 
 const app: any = express();
 const port: number = 3000;
+
+// parse application/x-www-form-urlencoded
+app.use(bodyParser.urlencoded({ extended: false }));
+
+// parse application/json
+app.use(bodyParser.json());
 
 app.get("/", (req: Request, res: Response) => {
   try {
@@ -25,3 +33,5 @@ app.get("/", (req: Request, res: Response) => {
 app.listen(port, () => {
   console.log(`Example app listening on port ${port}`);
 });
+
+app.use(router);
