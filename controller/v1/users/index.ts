@@ -1,19 +1,11 @@
-import { collection, getDocs } from "firebase/firestore/lite";
 import {
   createUserWithEmailAndPassword,
   updateProfile,
   sendEmailVerification,
   signInWithEmailAndPassword,
 } from "firebase/auth";
-import { User } from "../../types";
-import { isObjEmpty } from "../../helpers";
-
-const getUsers = async (db: any) => {
-  const usersCol = collection(db, "users");
-  const userSnapshot = await getDocs(usersCol);
-  const userList = userSnapshot.docs.map((doc) => doc.data());
-  return userList;
-};
+import { User } from "../../../types";
+import { isObjEmpty } from "../../../helpers";
 
 const createUser = async (auth: any, data: User) => {
   let result: any = {};
@@ -72,7 +64,7 @@ const updateUser = async (auth: any, data: User) => {
     .catch((err: any) => {
       return {
         error: true,
-        code: 403,
+        code: 401,
         message: "You doesn't have access to update this user",
         data: err,
       };
@@ -110,4 +102,4 @@ const login = async (auth: any, data: User) => {
   return result;
 };
 
-export { getUsers, createUser, login };
+export { createUser, login };
