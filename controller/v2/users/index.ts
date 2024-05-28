@@ -19,9 +19,18 @@ import {
 
 const apiError = new ApiError();
 
-/* const getUser = async (email: string) => {
-  const user = await getDoc(doc(db, "users", id));
-}; */
+const getUser = async (email: string) => {
+  const user = await getDoc(doc(db, "users", email));
+  if (!isObjEmpty(user.data()) && user.data()) {
+    return {
+      error: false,
+      code: 200,
+      data: user.data(),
+    };
+  } else {
+    return apiError.error(404);
+  }
+};
 
 const createUser = async (data: User) => {
   let isUserExist = false;
@@ -112,7 +121,7 @@ export const login = async (data: User) => {
   }
 };
 
-const updateUserData = async (email: string, updatedData: any) => {
+const updateUser = async (email: string, updatedData: any) => {
   let isUserExist = false;
   let user: any = {};
 
@@ -136,4 +145,4 @@ const updateUserData = async (email: string, updatedData: any) => {
   }
 };
 
-export { createUser, updateUserData };
+export { getUser, createUser, updateUser };

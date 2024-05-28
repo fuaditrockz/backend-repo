@@ -1,5 +1,10 @@
 import express, { Request, Response } from "express";
-import { createUser, login, updateUserData } from "../../controller/v2/users";
+import {
+  createUser,
+  login,
+  updateUser,
+  getUser,
+} from "../../controller/v2/users";
 import { authMiddleware } from "../../middleware";
 import { getTokenEmail } from "../../helpers";
 
@@ -28,11 +33,25 @@ routerV2.put(
     const authHeader = req.headers["authorization"];
     const token = authHeader && authHeader.split(" ")[1];
 
-    const updatedData = await updateUserData(
+    const updatedData = await updateUser(
       getTokenEmail(token as string),
       req.body
     );
     res.status(updatedData.code).send(updatedData);
+  }
+);
+
+routerV2.get(
+  "/v2/fetch-user-data",
+  authMiddleware,
+  async (req: Request, res: Response) => {
+    res.setHeader("Content-Type", "application/json");
+
+    const authHeader = req.headers["authorization"];
+    const token = authHeader && authHeader.split(" ")[1];
+
+    const userData = await getUser(getTokenEmail(token as string));
+    res.status(userData.code).send(userData);
   }
 );
 
