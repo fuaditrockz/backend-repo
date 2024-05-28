@@ -29,13 +29,25 @@ export function authenticateToken(
   const authHeader = req.headers["authorization"];
   const token = authHeader && authHeader.split(" ")[1];
 
-  if (token == null) return res.sendStatus(401);
+  if (token == null)
+    return res.status(401).send({
+      error: true,
+      code: 401,
+      message: "Authentication credentials were missing or incorrect",
+    });
 
   jwt.verify(token, process.env.APIKEY as string, (err: any, user: any) => {
-    console.log(err);
+    console.log("ERROR => ", err);
     console.log(user);
 
-    if (err) return res.sendStatus(403);
+    if (err) {
+      return res.status(403).send({
+        error: true,
+        code: 403,
+        message:
+          "The request is understood, but it has been refused or access is not allowed",
+      });
+    }
 
     next();
   });

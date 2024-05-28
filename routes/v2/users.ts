@@ -1,6 +1,12 @@
 import express, { Request, Response } from "express";
-import { getUsers, createUser, login } from "../../controller/v2/users";
+import {
+  getUsers,
+  createUser,
+  login,
+  updateUserData,
+} from "../../controller/v2/users";
 import { authenticateToken } from "../../middleware";
+import { getTokenEmail } from "../../helpers";
 
 const routerV2: any = express.Router();
 
@@ -34,5 +40,22 @@ routerV2.post("/v2/login", async (req: Request, res: Response) => {
   const loggedIn = await login(req.body);
   res.status(loggedIn.code).send(loggedIn);
 });
+
+routerV2.put(
+  "/v2/update-user-data",
+  authenticateToken,
+  async (req: Request, res: Response) => {
+    res.setHeader("Content-Type", "application/json");
+
+    const authHeader = req.headers["authorization"];
+    const token = authHeader && authHeader.split(" ")[1];
+
+    const updatedData = await updateUserData(
+      getTokenEmail(token as string),
+      req.body
+    );
+    res.status(updatedData.code).send(updatedData);
+  }
+);
 
 export default routerV2;

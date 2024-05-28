@@ -36,7 +36,7 @@ const createUser = async (data: User) => {
 
   // Logic for response
   if (!isUserExist) {
-    const token = generateAccessToken(data, process.env.APIKEY ?? "");
+    const token = generateAccessToken(data, process.env.APIKEY as string);
     const hashedPassword = await hashingPassword(data.password);
 
     const docRef = await addDoc(collection(db, "users"), {
@@ -96,7 +96,7 @@ export const login = async (data: User) => {
 
   // Logic for response
   if (isUserExist) {
-    const token = generateAccessToken(data, process.env.APIKEY ?? "");
+    const token = generateAccessToken(data, process.env.APIKEY as string);
     isPasswordMatch = await checkPassword(data.password, user.password);
 
     if (isPasswordMatch) {
@@ -137,4 +137,36 @@ export const login = async (data: User) => {
   }
 };
 
-export { getUsers, createUser };
+const updateUserData = async (email: string, updatedData: any) => {
+  let user: any = {};
+  let id: string = "";
+
+  // Firestore query (Check existing user)
+  const querySnapshot = await getDocs(collection(db, "users"));
+  querySnapshot.forEach((doc: any) => {
+    if (doc.data().email === email) {
+      user = doc.data();
+      id = doc.id;
+    }
+  });
+
+  if (!isObjEmpty(user)) {
+    await updateDoc(doc(db, "users", id), {
+      ...updatedData,
+    });
+
+    return {
+      error: false,
+      code: 200,
+      message: "User updated successfully",
+    };
+  } else {
+    return {
+      error: true,
+      code: 404,
+      message: "User not found",
+    };
+  }
+};
+
+export { getUsers, createUser, updateUserData };

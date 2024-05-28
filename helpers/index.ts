@@ -11,14 +11,19 @@ export function isObjEmpty(obj: any | null) {
 }
 
 export function generateAccessToken(data: User, secretKey: string) {
-  return jwt.sign({ email: data.email, password: data.password }, secretKey, {
-    expiresIn: "1m",
+  return jwt.sign({ email: data.email }, secretKey, {
+    expiresIn: "365d",
   });
 }
 
 export function getTokenExpirationTime(token: string) {
   const decoded: any = jwt.decode(token);
   return decoded.exp;
+}
+
+export function getTokenEmail(token: string) {
+  const decoded: any = jwt.decode(token);
+  return decoded.email;
 }
 
 export function hashingPassword(password: string) {
