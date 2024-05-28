@@ -43,9 +43,6 @@ export function authMiddleware(
       );
 
   jwt.verify(token, process.env.APIKEY as string, (err: any, user: any) => {
-    console.log("ERROR => ", err);
-    console.log(user);
-
     if (err)
       return res
         .status(403)

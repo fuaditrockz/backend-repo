@@ -37,7 +37,6 @@ export function checkPassword(password: string, hashedPassword: string) {
 export class ApiError {
   public error(code: number, customMessage?: string) {
     let message = "";
-    console.log("customMessage", customMessage);
 
     if (!customMessage) {
       switch (code) {

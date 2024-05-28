@@ -90,7 +90,6 @@ const login = async (auth: any, data: User) => {
       };
     })
     .catch((err: any) => {
-      console.log("Error ->", err);
       return {
         error: true,
         code: 403,
