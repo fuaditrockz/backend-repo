@@ -3,6 +3,7 @@ import {
   createUserWithEmailAndPassword,
   updateProfile,
   sendEmailVerification,
+  signInWithEmailAndPassword,
 } from "firebase/auth";
 import { User } from "../../types";
 import { isObjEmpty } from "../../helpers";
@@ -44,6 +45,8 @@ const createUser = async (auth: any, data: User) => {
       throw new Error(err.message);
     });
 
+    // Send data to Firestore (For technical test purpose)
+
     return {
       error: false,
       code: 201,
@@ -53,4 +56,58 @@ const createUser = async (auth: any, data: User) => {
   }
 };
 
-export { getUsers, createUser };
+const updateUser = async (auth: any, data: User) => {
+  const result = await updateProfile(auth.currentUser, {
+    displayName: data.displayName,
+    photoURL: data.photoURL,
+  })
+    .then((data: any) => {
+      return {
+        error: false,
+        code: 201,
+        message: "User created successfully",
+        data,
+      };
+    })
+    .catch((err: any) => {
+      return {
+        error: true,
+        code: 403,
+        message: "You doesn't have access to update this user",
+        data: err,
+      };
+    });
+
+  return result;
+};
+
+const login = async (auth: any, data: User) => {
+  const result = await signInWithEmailAndPassword(
+    auth,
+    data.email,
+    data.password
+  )
+    .then((userCredential: any) => {
+      // Signed in
+      const user = userCredential.user;
+      return {
+        error: false,
+        code: 200,
+        message: "User logged in successfully",
+        data: user,
+      };
+    })
+    .catch((err: any) => {
+      console.log("Error ->", err);
+      return {
+        error: true,
+        code: 403,
+        message: "You doesn't have access to update this user",
+        data: err,
+      };
+    });
+
+  return result;
+};
+
+export { getUsers, createUser, login };
