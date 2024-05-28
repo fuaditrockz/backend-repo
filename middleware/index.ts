@@ -2,6 +2,9 @@ import { Request, Response, NextFunction } from "express";
 import { onAuthStateChanged } from "firebase/auth";
 import jwt from "jsonwebtoken";
 import { auth } from "../config";
+import { ApiError } from "../helpers";
+
+const apiError = new ApiError();
 
 export const isAuthorized = (req: Request, res: Response) => {
   if (req.headers.authorization) {
@@ -21,7 +24,7 @@ export const isAuthorized = (req: Request, res: Response) => {
   }
 };
 
-export function authenticateToken(
+export function authMiddleware(
   req: Request,
   res: Response,
   next: NextFunction
@@ -30,24 +33,28 @@ export function authenticateToken(
   const token = authHeader && authHeader.split(" ")[1];
 
   if (token == null)
-    return res.status(401).send({
-      error: true,
-      code: 401,
-      message: "Authentication credentials were missing or incorrect",
-    });
+    return res
+      .status(401)
+      .send(
+        apiError.error(
+          401,
+          "Authentication credentials were missing or incorrect"
+        )
+      );
 
   jwt.verify(token, process.env.APIKEY as string, (err: any, user: any) => {
     console.log("ERROR => ", err);
     console.log(user);
 
-    if (err) {
-      return res.status(403).send({
-        error: true,
-        code: 403,
-        message:
-          "The request is understood, but it has been refused or access is not allowed",
-      });
-    }
+    if (err)
+      return res
+        .status(403)
+        .send(
+          apiError.error(
+            403,
+            "The request is understood, but it has been refused or access is not allowed"
+          )
+        );
 
     next();
   });

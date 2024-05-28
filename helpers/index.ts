@@ -33,3 +33,41 @@ export function hashingPassword(password: string) {
 export function checkPassword(password: string, hashedPassword: string) {
   return bcrypt.compare(password, hashedPassword);
 }
+
+export class ApiError {
+  public error(code: number, customMessage?: string) {
+    let message = "";
+    console.log("customMessage", customMessage);
+
+    if (!customMessage) {
+      switch (code) {
+        case 400:
+          message = "Bad Request";
+          break;
+        case 401:
+          message = "Unauthorized";
+          break;
+        case 403:
+          message = "Forbidden";
+          break;
+        case 404:
+          message = "Resource not found";
+          break;
+        case 500:
+          message = "Internal Server Error";
+          break;
+        default:
+          message = "Error";
+          break;
+      }
+    } else {
+      message = customMessage as string;
+    }
+
+    return {
+      error: true,
+      code,
+      message,
+    };
+  }
+}

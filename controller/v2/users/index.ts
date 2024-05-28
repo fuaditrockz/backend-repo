@@ -1,7 +1,7 @@
 import {
   collection,
   getDocs,
-  addDoc,
+  getDoc,
   setDoc,
   updateDoc,
   doc,
@@ -14,14 +14,14 @@ import {
   hashingPassword,
   getTokenExpirationTime,
   checkPassword,
+  ApiError,
 } from "../../../helpers";
 
-const getUsers = async () => {
-  const usersCol = collection(db, "users");
-  const userSnapshot = await getDocs(usersCol);
-  const userList = userSnapshot.docs.map((doc) => doc.data());
-  return userList;
-};
+const apiError = new ApiError();
+
+/* const getUser = async (email: string) => {
+  const user = await getDoc(doc(db, "users", id));
+}; */
 
 const createUser = async (data: User) => {
   let isUserExist = false;
@@ -36,10 +36,11 @@ const createUser = async (data: User) => {
 
   // Logic for response
   if (!isUserExist) {
+    let docRef: any = {};
     const token = generateAccessToken(data, process.env.APIKEY as string);
     const hashedPassword = await hashingPassword(data.password);
 
-    const docRef = await addDoc(collection(db, "users"), {
+    await setDoc(doc(db, "users", data.email), {
       full_name: data.displayName,
       email: data.email,
       password: hashedPassword,
@@ -53,28 +54,22 @@ const createUser = async (data: User) => {
       last_login: new Date(),
     });
 
+    docRef = await getDoc(doc(db, "users", data.email));
+
     if (!isObjEmpty(docRef)) {
       return {
         error: false,
         code: 201,
         message: "User created successfully",
         data: {
-          access_token: token,
+          ...docRef.data(),
         },
       };
     } else {
-      return {
-        error: true,
-        code: 500,
-        message: "Internal server error occurred",
-      };
+      return apiError.error(500);
     }
   } else {
-    return {
-      error: true,
-      code: 403,
-      message: "Email already in use",
-    };
+    return apiError.error(403, "Email already in use");
   }
 };
 
@@ -82,26 +77,18 @@ export const login = async (data: User) => {
   let isUserExist = false;
   let isPasswordMatch = false;
   let user: any = {};
-  let id: string = "";
 
   // Firestore query (Check existing user)
-  const querySnapshot = await getDocs(collection(db, "users"));
-  querySnapshot.forEach((doc: any) => {
-    if (doc.data().email === data.email) {
-      id = doc.id;
-      isUserExist = true;
-      user = doc.data();
-    }
-  });
+  user = await getDoc(doc(db, "users", data.email));
+  isUserExist = !isObjEmpty(user.data());
 
   // Logic for response
   if (isUserExist) {
     const token = generateAccessToken(data, process.env.APIKEY as string);
-    isPasswordMatch = await checkPassword(data.password, user.password);
+    isPasswordMatch = await checkPassword(data.password, user.data().password);
 
     if (isPasswordMatch) {
-      let updatedData: any = {};
-      await updateDoc(doc(db, "users", id), {
+      await updateDoc(doc(db, "users", data.email), {
         tokenManager: {
           access_token: token,
           expiration_time: getTokenExpirationTime(token),
@@ -109,50 +96,34 @@ export const login = async (data: User) => {
         last_login: new Date(),
       });
 
-      querySnapshot.forEach((doc: any) => {
-        if (doc.data().email === data.email) {
-          updatedData = doc.data();
-        }
-      });
+      const updatedData = await getDoc(doc(db, "users", data.email));
 
       return {
         error: false,
         code: 200,
         message: "Login success",
-        data: updatedData,
+        data: updatedData.data(),
       };
     } else {
-      return {
-        error: true,
-        code: 401,
-        message: "Invalid password",
-      };
+      return apiError.error(401, "Password is incorrect");
     }
   } else {
-    return {
-      error: true,
-      code: 404,
-      message: "User not found",
-    };
+    return apiError.error(404);
   }
 };
 
 const updateUserData = async (email: string, updatedData: any) => {
+  let isUserExist = false;
   let user: any = {};
-  let id: string = "";
 
   // Firestore query (Check existing user)
-  const querySnapshot = await getDocs(collection(db, "users"));
-  querySnapshot.forEach((doc: any) => {
-    if (doc.data().email === email) {
-      user = doc.data();
-      id = doc.id;
-    }
-  });
+  user = await getDoc(doc(db, "users", email));
+  isUserExist = !isObjEmpty(user.data()) && user.data();
 
-  if (!isObjEmpty(user)) {
-    await updateDoc(doc(db, "users", id), {
+  if (isUserExist) {
+    await updateDoc(doc(db, "users", email), {
       ...updatedData,
+      email: email,
     });
 
     return {
@@ -161,12 +132,8 @@ const updateUserData = async (email: string, updatedData: any) => {
       message: "User updated successfully",
     };
   } else {
-    return {
-      error: true,
-      code: 404,
-      message: "User not found",
-    };
+    return apiError.error(404);
   }
 };
 
-export { getUsers, createUser, updateUserData };
+export { createUser, updateUserData };

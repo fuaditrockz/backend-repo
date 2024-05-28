@@ -1,8 +1,10 @@
 require("dotenv").config();
-import express, { Request, Response } from "express";
+
+import express from "express";
+import bodyParser from "body-parser";
+
 import router from "./routes/v1/users";
 import routerV2 from "./routes/v2/users";
-import bodyParser from "body-parser";
 
 const app: any = express();
 const port: number = 3000;
