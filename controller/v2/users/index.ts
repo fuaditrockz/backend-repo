@@ -53,7 +53,7 @@ const createUser = async (data: User) => {
       full_name: data.displayName,
       email: data.email,
       password: hashedPassword,
-      photo_url: data.photoURL,
+      photo_url: data.photoURL ?? "",
       tokenManager: {
         access_token: token,
         expiration_time: getTokenExpirationTime(token),
